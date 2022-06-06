@@ -23,6 +23,7 @@ from contextlib import asynccontextmanager
 import logging
 import asyncio
 
+
 class Core(object):
     @classmethod
     async def create(cls, config):
@@ -74,7 +75,7 @@ class Core(object):
                     yield {
                         "type": event["type"],
                         "key": event["object"].metadata.uid,
-                        "value": event["raw_object"] if raw else event["object"]
+                        "value": event["raw_object"] if raw else event["object"],
                     }
             except asyncio.CancelledError:
                 logging.debug("cancelled error")
@@ -83,4 +84,3 @@ class Core(object):
         async def delete_pod(self, name, namespace):
             v1 = client.CoreV1Api(self.api)
             await v1.delete_namespaced_pod(name, namespace)
-
