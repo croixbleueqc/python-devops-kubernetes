@@ -15,13 +15,14 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with python-devops-kubernetes.  If not, see <https://www.gnu.org/licenses/>.
 
-from kubernetes_asyncio import client, config as k8sconfig, watch
-from kubernetes_asyncio.client.api_client import ApiClient
-
+import asyncio
+import logging
 from contextlib import asynccontextmanager
 
-import logging
-import asyncio
+from kubernetes_asyncio import client
+from kubernetes_asyncio import config as k8sconfig
+from kubernetes_asyncio import watch
+from kubernetes_asyncio.client.api.core_v1_api import CoreV1Api
 
 
 class Core(object):
@@ -62,11 +63,16 @@ class Core(object):
                 config_file=config["config_file"]
             )
 
+        async def list_pods(self, namespace):
+            v1 = CoreV1Api(self.api)
+            ret = await v1.list_namespaced_pod(namespace)
+            return ret.items
+
         async def close(self):
             await self.api.close()
 
         async def pods(self, namespace, raw=True):
-            v1 = client.CoreV1Api(self.api)
+            v1 = CoreV1Api(self.api)
             w = watch.Watch()
 
             try:
