@@ -24,7 +24,6 @@ setup(
     version="0.0.1",
     python_requires=">=3.7",
     packages=find_packages(exclude=["tests"]),
-    install_requires=["kubernetes_asyncio"],
     # Metadata
     author="Croix Bleue du Quebec",
     author_email="devops@qc.croixbleue.ca",
