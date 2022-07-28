@@ -19,10 +19,8 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 
-from kubernetes_asyncio import client
-from kubernetes_asyncio import config as k8sconfig
-from kubernetes_asyncio import watch
-from kubernetes_asyncio.client.api.core_v1_api import CoreV1Api
+from kubernetes import client, watch
+from kubernetes import config as k8sconfig
 
 
 class Core(object):
@@ -66,6 +64,11 @@ class Core(object):
         async def list_pods(self, namespace):
             v1 = CoreV1Api(self.api)
             ret = await v1.list_namespaced_pod(namespace)
+            return ret.items
+
+        async def list_all_pods(self):
+            v1 = CoreV1Api(self.api)
+            ret = await v1.list_pod_for_all_namespaces()
             return ret.items
 
         async def close(self):
