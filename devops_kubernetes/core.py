@@ -16,6 +16,7 @@
 # along with python-devops-kubernetes.  If not, see <https://www.gnu.org/licenses/>.
 
 import asyncio
+from concurrent.futures import thread
 import logging
 from contextlib import asynccontextmanager
 
@@ -53,30 +54,31 @@ class Core(object):
         @classmethod
         async def create(cls, config):
             self = Core.Context()
-            await self.init(config)
+            self.init(config)
             return self
 
-        async def init(self, config):
+        def init(self, config):
             k8sconfig.load_kube_config(config_file=config["config_file"])
             self.api = client.CoreV1Api()
 
         async def list_pods(self, namespace):
-            ret = await self.api.list_namespaced_pod(namespace)
+            thread = self.api.list_namespaced_pod(namespace, async_req=True)
+            ret = thread.get()
             return ret.items
 
         async def list_all_pods(self):
-            ret = await self.api.list_pod_for_all_namespaces()
+            thread = self.api.list_pod_for_all_namespaces(async_req=True)
+            ret = thread.get()
             return ret.items
 
         async def close(self):
             pass
 
         async def pods(self, namespace, raw=True):
-            v1 = CoreV1Api(self.api)
             w = watch.Watch()
 
             try:
-                async for event in w.stream(v1.list_namespaced_pod, namespace):
+                for event in w.stream(self.api.list_namespaced_pod, namespace):
                     logging.debug("yield a pod")
                     yield {
                         "type": event["type"],
@@ -88,5 +90,5 @@ class Core(object):
                 raise
 
         async def delete_pod(self, name, namespace):
-            v1 = client.CoreV1Api(self.api)
-            await v1.delete_namespaced_pod(name, namespace)
+            thread = self.api.delete_namespaced_pod(name, namespace, async_req=True)
+            return thread.get()
