@@ -71,6 +71,11 @@ class Core(object):
             ret = thread.get()
             return ret.items
 
+        async def list_all_pods(self):
+            v1 = CoreV1Api(self.api)
+            ret = await v1.list_pod_for_all_namespaces()
+            return ret.items
+
         async def close(self):
             pass
 
