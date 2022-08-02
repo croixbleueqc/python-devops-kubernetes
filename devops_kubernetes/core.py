@@ -16,12 +16,12 @@
 # along with python-devops-kubernetes.  If not, see <https://www.gnu.org/licenses/>.
 
 import asyncio
-from concurrent.futures import thread
 import logging
 from contextlib import asynccontextmanager
 
-from kubernetes import client, watch
+from kubernetes import client
 from kubernetes import config as k8sconfig
+from kubernetes import watch
 
 
 class Core(object):
@@ -69,11 +69,6 @@ class Core(object):
         async def list_all_pods(self):
             thread = self.api.list_pod_for_all_namespaces(async_req=True)
             ret = thread.get()
-            return ret.items
-
-        async def list_all_pods(self):
-            v1 = CoreV1Api(self.api)
-            ret = await v1.list_pod_for_all_namespaces()
             return ret.items
 
         async def close(self):
