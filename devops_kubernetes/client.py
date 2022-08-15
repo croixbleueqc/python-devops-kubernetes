@@ -24,10 +24,10 @@ from kubernetes import config as k8sconfig
 from kubernetes import watch
 
 
-class Core(object):
+class K8sClient(object):
     @classmethod
     async def create(cls, config):
-        self = Core(config)
+        self = K8sClient(config)
         await self.init()
         return self
 
@@ -39,7 +39,7 @@ class Core(object):
 
     @asynccontextmanager
     async def context(self, cluster):
-        ctx = await Core.Context.create(self.config["clusters"][cluster])
+        ctx = await K8sClient.Context.create(self.config["clusters"][cluster])
         try:
             yield ctx
         finally:
@@ -53,7 +53,7 @@ class Core(object):
 
         @classmethod
         async def create(cls, config):
-            self = Core.Context()
+            self = K8sClient.Context()
             self.init(config)
             return self
 
