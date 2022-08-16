@@ -19,9 +19,10 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 
-from kubernetes import client
-from kubernetes import config as k8sconfig
-from kubernetes import watch
+from kubernetes_asyncio import client
+from kubernetes_asyncio import config as k8sconfig
+from kubernetes_asyncio import watch
+from kubernetes_asyncio.client.api.core_v1_api import CoreV1Api
 
 
 class K8sClient(object):
@@ -54,31 +55,28 @@ class K8sClient(object):
         @classmethod
         async def create(cls, config):
             self = K8sClient.Context()
-            self.init(config)
+            await self.init(config)
             return self
 
-        def init(self, config):
-            k8sconfig.load_kube_config(config_file=config["config_file"])
-            self.api = client.CoreV1Api()
+        async def init(self, config):
+            self.api = await k8sconfig.new_client_from_config(
+                config_file=config["config_file"]
+            )
 
         async def list_pods(self, namespace):
-            thread = self.api.list_namespaced_pod(namespace, async_req=True)
-            ret = thread.get()
-            return ret.items
-
-        async def list_all_pods(self):
-            thread = self.api.list_pod_for_all_namespaces(async_req=True)
-            ret = thread.get()
+            v1 = CoreV1Api(self.api)
+            ret = await v1.list_namespaced_pod(namespace)
             return ret.items
 
         async def close(self):
-            pass
+            await self.api.close()
 
         async def pods(self, namespace, raw=True):
+            v1 = CoreV1Api(self.api)
             w = watch.Watch()
 
             try:
-                for event in w.stream(self.api.list_namespaced_pod, namespace):
+                async for event in w.stream(v1.list_namespaced_pod, namespace):
                     logging.debug("yield a pod")
                     yield {
                         "type": event["type"],
@@ -90,5 +88,5 @@ class K8sClient(object):
                 raise
 
         async def delete_pod(self, name, namespace):
-            thread = self.api.delete_namespaced_pod(name, namespace, async_req=True)
-            return thread.get()
+            v1 = client.CoreV1Api(self.api)
+            await v1.delete_namespaced_pod(name, namespace)
