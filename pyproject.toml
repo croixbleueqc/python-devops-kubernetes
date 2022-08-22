@@ -1,16 +1,13 @@
-[tool.poetry]
+[project]
 name = "devops_kubernetes"
-version = "0.2.0"
+version = "1.0.0"
 description = "Kubernetes abstraction for DevOps"
-authors = ["Croix Bleue <devops@qc.croixbleue.ca>"]
-license = "LGPL-3.0-or-later"
+requires-python = ">=3.10"
+license = { text = "LGPL-3.0-or-later" }
+authors = [{ name = "Croix Bleue", email = "devops@qc.croixbleue.ca" }]
+dependencies = ["kubernetes-asyncio"]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-kubernetes-asyncio = "^24.2.0"
-
-[tool.poetry.dev-dependencies]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
