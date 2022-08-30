@@ -33,3 +33,5 @@ example.py
 run.py
 secret
 plugins_tests/
+
+dist/
