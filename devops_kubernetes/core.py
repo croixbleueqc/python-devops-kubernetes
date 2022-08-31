@@ -79,9 +79,9 @@ class Core(object):
                 async for event in w.stream(v1.list_namespaced_pod, namespace):
                     logging.debug("yield a pod")
                     yield {
-                        "type": event["type"],
-                        "key": event["object"].metadata.uid,
-                        "value": event["raw_object"] if raw else event["object"],
+                        "type": event["type"],  # type: ignore
+                        "key": event["object"].metadata.uid,  # type: ignore
+                        "value": event["raw_object"] if raw else event["object"],  # type: ignore
                     }
             except asyncio.CancelledError:
                 logging.debug("cancelled error")
