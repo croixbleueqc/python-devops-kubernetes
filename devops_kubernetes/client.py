@@ -18,6 +18,7 @@
 import asyncio
 import logging
 from contextlib import asynccontextmanager
+import os
 
 from kubernetes_asyncio import client
 from kubernetes_asyncio import config as k8sconfig
@@ -39,8 +40,10 @@ class K8sClient(object):
         pass
 
     @asynccontextmanager
-    async def context(self, cluster):
-        ctx = await K8sClient.Context.create(self.config["clusters"][cluster])
+    async def context(self, env, cluster):
+        ctx = await K8sClient.Context.create(
+            os.path.join(self.config["config_dir"], env, cluster)
+        )
         try:
             yield ctx
         finally:
@@ -58,10 +61,8 @@ class K8sClient(object):
             await self.init(config)
             return self
 
-        async def init(self, config):
-            self.api = await k8sconfig.new_client_from_config(
-                config_file=config["config_file"]
-            )
+        async def init(self, config_file):
+            self.api = await k8sconfig.new_client_from_config(config_file=config_file)
 
         async def list_pods(self, namespace):
             v1 = CoreV1Api(self.api)
