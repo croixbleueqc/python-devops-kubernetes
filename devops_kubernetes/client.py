@@ -21,6 +21,7 @@ from contextlib import asynccontextmanager
 import os
 
 from kubernetes_asyncio import client
+from kubernetes_asyncio.client.models import V1Pod
 from kubernetes_asyncio import config as k8sconfig
 from kubernetes_asyncio import watch
 from kubernetes_asyncio.client.api.core_v1_api import CoreV1Api
@@ -64,7 +65,7 @@ class K8sClient(object):
         async def init(self, config_file):
             self.api = await k8sconfig.new_client_from_config(config_file=config_file)
 
-        async def list_pods(self, namespace):
+        async def list_pods(self, namespace) -> list[V1Pod]:
             v1 = CoreV1Api(self.api)
             ret = await v1.list_namespaced_pod(namespace)
             return ret.items
