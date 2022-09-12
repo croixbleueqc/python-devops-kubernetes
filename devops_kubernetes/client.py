@@ -81,7 +81,6 @@ class K8sClient(object):
                 async for event in w.stream(
                     v1.list_namespaced_pod,
                     namespace,
-                    timeout_seconds=10,
                 ):
                     yield {
                         "type": event["type"],  # type: ignore
