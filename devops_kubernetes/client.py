@@ -78,8 +78,11 @@ class K8sClient(object):
             w = watch.Watch()
 
             try:
-                async for event in w.stream(v1.list_namespaced_pod, namespace):
-                    logging.debug("yield a pod")
+                async for event in w.stream(
+                    v1.list_namespaced_pod,
+                    namespace,
+                    timeout_seconds=10,
+                ):
                     yield {
                         "type": event["type"],  # type: ignore
                         "key": event["object"].metadata.uid,  # type: ignore
@@ -91,4 +94,4 @@ class K8sClient(object):
 
         async def delete_pod(self, name, namespace):
             v1 = client.CoreV1Api(self.api)
-            await v1.delete_namespaced_pod(name, namespace)
+            v1.delete_namespaced_pod(name, namespace)
