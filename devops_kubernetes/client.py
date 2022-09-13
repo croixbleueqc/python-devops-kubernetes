@@ -68,6 +68,7 @@ class K8sClient(object):
         async def list_pods(self, namespace) -> list[V1Pod]:
             v1 = CoreV1Api(self.api)
             ret = await v1.list_namespaced_pod(namespace)
+            logging.info(ret.items)
             return ret.items
 
         async def close(self):
@@ -76,7 +77,7 @@ class K8sClient(object):
         async def pods(self, namespace, raw=True):
             v1 = CoreV1Api(self.api)
             w = watch.Watch()
-
+            logging.info("Watching pods in namespace %s", namespace)
             try:
                 async for event in w.stream(
                     v1.list_namespaced_pod,
