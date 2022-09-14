@@ -42,9 +42,7 @@ class K8sClient(object):
 
     @asynccontextmanager
     async def context(self, cluster):
-        ctx = await K8sClient.Context.create(
-            os.path.join(self.config["config_dir"], cluster)
-        )
+        ctx = await K8sClient.Context.create(os.path.join(self.config["config_dir"], cluster))
         try:
             yield ctx
         finally:
