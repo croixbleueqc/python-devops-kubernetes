@@ -68,7 +68,7 @@ class K8sClient(object):
         async def list_pods(self, namespace) -> list[V1Pod]:
             v1 = CoreV1Api(self.api)
             ret = await v1.list_namespaced_pod(namespace)
-            logging.info(ret.items)
+            logging.info(f"Found {len(ret.items)} pods in namespace {namespace}")
             return ret.items
 
         async def close(self):
