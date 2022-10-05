@@ -92,4 +92,5 @@ class K8sClient(object):
 
         async def delete_pod(self, name, namespace):
             v1 = client.CoreV1Api(self.api)
-            v1.delete_namespaced_pod(name, namespace)
+            thread = v1.delete_namespaced_pod(name, namespace, async_req=True)
+            await thread.get()  # type: ignore
