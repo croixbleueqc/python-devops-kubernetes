@@ -17,14 +17,14 @@
 
 import asyncio
 import logging
-from contextlib import asynccontextmanager
 import os
+from contextlib import asynccontextmanager
 
 from kubernetes_asyncio import client
-from kubernetes_asyncio.client.models import V1Pod
 from kubernetes_asyncio import config as k8sconfig
 from kubernetes_asyncio import watch
 from kubernetes_asyncio.client.api.core_v1_api import CoreV1Api
+from kubernetes_asyncio.client.models import V1Pod
 
 
 class K8sClient(object):
@@ -78,8 +78,8 @@ class K8sClient(object):
             logging.info("Watching pods in namespace %s", namespace)
             try:
                 async for event in w.stream(
-                    v1.list_namespaced_pod,
-                    namespace,
+                        v1.list_namespaced_pod,
+                        namespace,
                 ):
                     yield {
                         "type": event["type"],  # type: ignore
@@ -92,5 +92,17 @@ class K8sClient(object):
 
         async def delete_pod(self, name, namespace):
             v1 = client.CoreV1Api(self.api)
-            thread = v1.delete_namespaced_pod(name, namespace, async_req=True)
-            await thread.get()  # type: ignore
+            await v1.delete_namespaced_pod(name, namespace)
+
+        async def exclude_namespaces_from_kube_downscaler(self, namespaces: list[str]):
+            api = CoreV1Api(self.api)
+
+            name = "kube-downscaler"  # same for namespace and ConfigMap
+
+            current_configmap = await api.read_namespaced_config_map(name, name)
+
+            key = "EXCLUDE_NAMESPACES"
+            value = set(current_configmap.get(key).split(','))
+            value.update(namespaces)
+
+            return await api.patch_namespaced_config_map(name, name, {key: value})
