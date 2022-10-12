@@ -94,7 +94,7 @@ class K8sClient(object):
             v1 = client.CoreV1Api(self.api)
             await v1.delete_namespaced_pod(name, namespace)
 
-        async def exclude_namespaces_from_kube_downscaler(self, namespaces: list[str]):
+        async def add_ns_to_exclude_from_kube_downscaler(self, namespaces: list[str]):
             api = CoreV1Api(self.api)
 
             name = "kube-downscaler"  # same for namespace and ConfigMap
@@ -104,5 +104,20 @@ class K8sClient(object):
             key = "EXCLUDE_NAMESPACES"
             value = set(current_configmap.get(key).split(','))
             value.update(namespaces)
+
+            return await api.patch_namespaced_config_map(name, name, {key: value})
+
+        async def remove_ns_to_exclude_from_kube_downscaler(self, namespaces: list[str]):
+            api = CoreV1Api(self.api)
+
+            name = "kube-downscaler"
+
+            current_configmap = await api.read_namespaced_config_map(name, name)
+
+            key = "EXCLUDE_NAMESPACES"
+            value = set(current_configmap.get(key).split(','))
+            for v in value:
+                if v in namespaces:
+                    value.remove(v)
 
             return await api.patch_namespaced_config_map(name, name, {key: value})
