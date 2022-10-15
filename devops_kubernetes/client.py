@@ -23,6 +23,7 @@ from contextlib import asynccontextmanager
 from kubernetes_asyncio import client
 from kubernetes_asyncio import config as k8sconfig
 from kubernetes_asyncio import watch
+from kubernetes_asyncio.client import V1PodStatus
 from kubernetes_asyncio.client.api.core_v1_api import CoreV1Api
 from kubernetes_asyncio.client.models import V1Pod
 
@@ -80,12 +81,12 @@ class K8sClient(object):
                 async for event in w.stream(
                         v1.list_namespaced_pod,
                         namespace,
-                ):
+                        ):
                     yield {
                         "type": event["type"],  # type: ignore
                         "key": event["object"].metadata.uid,  # type: ignore
                         "value": event["raw_object"] if raw else event["object"],  # type: ignore
-                    }
+                        }
             except asyncio.CancelledError:
                 logging.debug("cancelled error")
                 raise
@@ -121,3 +122,14 @@ class K8sClient(object):
                     value.remove(v)
 
             return await api.patch_namespaced_config_map(name, name, {key: value})
+
+        async def get_deployment_status(self, namespace) -> list[V1PodStatus]:
+            api = CoreV1Api(self.api)
+            pods = await api.list_namespaced_pod(namespace)
+
+            statuses = []
+            for pod in pods.items:
+                pod = await api.read_namespaced_pod_status(pod.metadata.name, namespace)
+                statuses.append(pod.status)
+
+            return statuses
